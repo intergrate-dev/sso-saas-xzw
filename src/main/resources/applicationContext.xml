@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd"
+    default-lazy-init="true">
+
+    <description>Spring公共配置 </description>
+
+    <!-- 使用annotation 自动注册bean, 并保证@Required、@Autowired的属性被注入 -->
+    <context:component-scan base-package="com.founder.sso">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+        <context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice" />
+    </context:component-scan>
+    <!-- 加载OauthClient -->
+    <bean id="sinaWBClient" class="com.founder.sso.service.oauth.impl.SinaWBClient" lazy-init="false"></bean>
+    <bean id="wechatClient" class="com.founder.sso.service.oauth.impl.WechatClient" lazy-init="false"></bean>
+    <bean id="QQClient" class="com.founder.sso.service.oauth.impl.QQClient" lazy-init="false"></bean>
+    <bean id="facebookClient" class="com.founder.sso.service.oauth.impl.FacebookClient" lazy-init="false"></bean>
+    <bean id="googlePlusClient" class="com.founder.sso.service.oauth.impl.GooglePlusClient" lazy-init="false"></bean>
+    <bean id="twitterClient" class="com.founder.sso.service.oauth.impl.TwitterClient" lazy-init="false"></bean>
+
+    <bean id="beanMapper" class="com.founder.sso.util.BeanMapper" lazy-init="false">
+        <property name="dozer">
+            <bean class="org.dozer.DozerBeanMapper">
+                <property name="mappingFiles">
+                    <list>
+                        <value>sina_user_mapper.xml</value>
+                    </list>
+                </property>
+            </bean>
+        </property>
+    </bean>
+    
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">   
+	    <!-- 设置上传文件的最大尺寸为1MB -->   
+	    <property name="maxUploadSize">   
+	        <value>1048576</value>   
+	    </property>   
+	</bean>  
+	
+	<bean name="genericObjectPoolConfig" class="org.apache.commons.pool2.impl.GenericObjectPoolConfig" >
+			<property name="maxWaitMillis" value="-1" />
+			<property name="maxTotal" value="1000" />
+			<property name="minIdle" value="8" />
+			<property name="maxIdle" value="100" />
+	</bean>
+	
+	<bean id="redisPoolConfig" class="org.apache.commons.pool2.impl.GenericObjectPoolConfig">
+		<property name="maxTotal"  value="500" />
+		<property name="maxIdle"   value="50" />
+		<property name="maxWaitMillis" value="3000" />
+		<property name="testOnBorrow" value="true"/>
+	</bean>
+	
+	<!-- redis单节点设置 -->	
+	<!-- <bean id="JedisClientSingle" class="com.founder.redis.JedisClientSingle" />-->
+	<!-- redis单节点连接池配置 -->
+	<!--<bean id="jedisPool" class="redis.clients.jedis.JedisPool">
+		<constructor-arg index="0" ref="redisPoolConfig" />
+		<constructor-arg index="1" value="${REDIS_HOST:172.19.57.182}" />
+		<constructor-arg index="2" value="${REDIS_PORT:7000}" type="int" />
+		<constructor-arg index="3" value="3000" />
+		<constructor-arg index="4" value="${REDIS_PASSWORD}" />
+	</bean>-->
+
+	<!-- redis多节点设置 -->	
+	<bean id="JedisClientCluster" class="com.founder.redis.JedisClientCluster" />
+	<bean id="jedisCluster" class="redis.clients.jedis.JedisCluster" scope="singleton">
+        <constructor-arg index="0" name="jedisClusterNode">
+        	<set>
+        		<bean class="redis.clients.jedis.HostAndPort">
+        			<constructor-arg name="host" value="${REDIS1_ADDR:47.97.75.226}" />
+                    <constructor-arg name="port" value="7000" />
+        		</bean>
+        		<bean class="redis.clients.jedis.HostAndPort">
+        			<constructor-arg name="host" value="${REDIS2_ADDR:47.97.75.226}" />
+                    <constructor-arg name="port" value="7001" />
+        		</bean>
+        		<bean class="redis.clients.jedis.HostAndPort">
+        			<constructor-arg name="host" value="${REDIS3_ADDR:47.97.75.226}" />
+                    <constructor-arg name="port" value="7002" />
+        		</bean>
+        		<bean class="redis.clients.jedis.HostAndPort">
+        			<constructor-arg name="host" value="${REDIS3_ADDR:47.97.75.226}" />
+                    <constructor-arg name="port" value="7003" />
+        		</bean>
+        		<bean class="redis.clients.jedis.HostAndPort">
+        			<constructor-arg name="host" value="${REDIS1_ADDR:47.97.75.226}" />
+                    <constructor-arg name="port" value="7004" />
+        		</bean>
+        		<bean class="redis.clients.jedis.HostAndPort">
+        			<constructor-arg name="host" value="${REDIS2_ADDR:47.97.75.226}" />
+                    <constructor-arg name="port" value="7005" />
+        		</bean>
+        	</set>
+        </constructor-arg>
+        <constructor-arg index="1" name="connectionTimeout" value="3000" />
+		<constructor-arg index="2" name="soTimeout" value="3000" />
+		<constructor-arg index="3" name="maxAttempts" value="3" />
+	    <constructor-arg index="4" name="poolConfig" ref="redisPoolConfig" /> 
+		
+		<!--
+		<constructor-arg index="4" name="password" value="abcd" />
+		<constructor-arg index="5" name="poolConfig" ref="redisPoolConfig" /> 
+		-->
+        
+    </bean>
+
+	<!--<bean id="facadeMonitoringAdvisor" class="net.bull.javamelody.MonitoringSpringAdvisor">
+		<property name="pointcut">
+			<bean class="org.springframework.aop.support.JdkRegexpMethodPointcut">
+				<property name="pattern" value=".*service.*" />
+			</bean>
+		</property>
+	</bean>-->
+
+</beans>

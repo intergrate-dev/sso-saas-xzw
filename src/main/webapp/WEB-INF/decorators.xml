@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<decorators defaultdir="/WEB-INF/layouts/">
+    <excludes>
+        <pattern>/user/API/session/synchronizedLogout</pattern>
+        <pattern>/admin/login</pattern>
+        <pattern>/user/synchronizeLogin</pattern>
+        <pattern>/user/synchronizeLogout</pattern>
+        <pattern>/user/validateCode/create</pattern>
+    </excludes>
+
+
+    <decorator name="main_navbar" page="withTopNav.jsp">
+        <pattern>/admin/*</pattern>
+    </decorator>
+    
+    <decorator name="user_navbar" page="withTopNavForUser.jsp">
+        <pattern>/user/*</pattern>
+    </decorator>
+    
+    <decorator name="noTopNav" page="noTopNav.jsp">
+    	<pattern>/user/register</pattern>
+    	<pattern>/user/login</pattern>
+        <pattern>/user/connection/isConnected</pattern>
+        <pattern>/user/connection/doConnection</pattern>
+        <pattern>/user/connection/connectionSucess</pattern>
+        <pattern>/user/ssoLogin</pattern>
+        <pattern>/user/ssoLogout</pattern>
+        <pattern>/user/email/sendCode</pattern>
+        <pattern>/user/email/test</pattern>
+        <pattern>/user/password/find</pattern>
+        <pattern>/user/password/find/inputCode</pattern>
+        <pattern>/user/password/find/authentication</pattern>
+        <pattern>/user/password/find/resetPwd</pattern>
+        <pattern>/user/password/initUpdatePassword2</pattern>
+    </decorator>
+    
+    <decorator name="withNothing" page="withNothing.jsp">
+    	<pattern>/user/register1</pattern>
+    	<pattern>/user/login1</pattern>
+    	<pattern>/user/forgetPwd_web</pattern>
+        <pattern>/user/privacy/statement</pattern>
+        <pattern>/user/test</pattern>
+        <pattern>/user/login_app</pattern>
+        <pattern>/user/register_app</pattern>
+        <pattern>/user/forgetPwd_app</pattern>
+        <pattern>/user/password/initUpdatePassword_app</pattern>
+	    <pattern>/user/API/session/synchronizedLogin</pattern>
+    </decorator>
+    
+</decorators>

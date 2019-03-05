@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+    xmlns:jee="http://www.springframework.org/schema/jee" xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.0.xsd
+        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.0.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+        http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.3.xsd"
+    default-lazy-init="true">
+
+    <description>持久层配置</description>
+
+    <!-- Spring Data Jpa配置 -->
+    <jpa:repositories base-package="com.founder.sso" transaction-manager-ref="transactionManager"
+        entity-manager-factory-ref="entityManagerFactory" />
+
+    <!-- Jpa Entity Manager 配置 -->
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="jpaVendorAdapter" ref="hibernateJpaVendorAdapter" />
+        <property name="packagesToScan" value="com.founder.sso" />
+        <property name="jpaProperties">
+            <props>
+                <!-- 命名规则 My_NAME->MyName -->
+                <prop key="hibernate.ejb.naming_strategy">org.hibernate.cfg.ImprovedNamingStrategy</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="hibernateJpaVendorAdapter" class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+        <property name="database" value="${jpa.database:MYSQL}"></property>
+        <property name="showSql" value="${jpa.showSql:true}"></property>
+        <property name="generateDdl" value="${jpa.generateDdl:false}"></property>
+        <property name="databasePlatform" value="${jpa.databasePlatform:org.hibernate.dialect.MySQL5Dialect}">
+        </property>
+    </bean>
+
+    <!-- Jpa 事务配置 -->
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory" />
+    </bean>
+
+    <!-- 使用annotation定义事务 -->
+    <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true" />
+
+    <!-- dataSource声明 -->
+
+    <beans profile="development">
+        <context:property-placeholder ignore-resource-not-found="true" />
+        <!--<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+            <property name="url" value="${DB_URL:jdbc:mysql://localhost:3306/sso-saas?useUnicode=true}" />
+            <property name="username" value="${DB_USER:root}" />
+            <property name="password" value="${DB_PASSWORD:root}" />
+            <property name="filters" value="stat" />
+        </bean>-->
+        <!--<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+            <property name="url" value="jdbc:mysql://172.19.57.208:3306/sso?useUnicode=true" />
+            <property name="username" value="root" />
+            <property name="password" value="founder123" />
+            <property name="filters" value="stat" />
+        </bean>-->
+        <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+            <property name="url" value="jdbc:mysql://localhost:3306/xzw-sso?useUnicode=true" />
+            <property name="username" value="root" />
+            <property name="password" value="" />
+            <property name="filters" value="stat" />
+        </bean>
+        <!--<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+            <property name="url" value="jdbc:mysql://172.19.57.45:3306/sso?useUnicode=true" />
+            <property name="username" value="root" />
+            <property name="password" value="founder123" />
+            <property name="filters" value="stat" />
+        </bean>-->
+    </beans>
+
+    <beans profile="functional"></beans> 
+
+</beans>

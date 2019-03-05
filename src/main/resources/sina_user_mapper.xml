@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mappings xmlns="http://dozer.sourceforge.net"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://dozer.sourceforge.net
+          http://dozer.sourceforge.net/schema/beanmapping.xsd">
+<mapping>
+    <class-a>com.founder.sso.service.oauth.entity.RemoteUser</class-a> 
+    <class-b>weibo4j.model.User</class-b> 
+    <field> 
+        <a>nickname</a> 
+        <b>screenName</b> 
+    </field> 
+    <field> 
+        <a>avatarSmall</a> 
+        <b>profileImageUrl</b> 
+    </field> 
+    <field> 
+        <a>avatarMiddle</a> 
+        <b>avatarLarge</b> 
+    </field> 
+    <field> 
+        <a>avatarLarge</a> 
+        <b>avatarLarge</b> 
+    </field> 
+</mapping>
+</mappings>
