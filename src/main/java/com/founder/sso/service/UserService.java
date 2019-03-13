@@ -931,6 +931,10 @@ public class UserService {
     }
 
     public org.json.JSONObject synRegistToMember(User user, String password, String siteId) throws org.json.JSONException {
+        if (user.getId() == null) {
+            user.setRegisterDate(Clock.DEFAULT.getCurrentDate());
+            this.save(user);
+        }
         List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("siteid", StringUtils.isNoneBlank(siteId)?siteId:"1"));
         params.add(new BasicNameValuePair("ssoid",""+user.getId()));

@@ -22,6 +22,7 @@ import com.founder.sso.util.json.JSONException;
 import com.founder.sso.util.json.JSONObject;
 import com.founder.sso.util.securityCode.CacheUtil;
 import com.google.code.kaptcha.Producer;
+import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.ClientProtocolException;
@@ -96,6 +97,10 @@ public class UserSessionController extends BaseController {
 
     @Autowired
     private UserOauthBindingDao userOauthBindingDao;
+
+    private final static JSONObject WECHAT_CONFIG = new JSONObject();
+    private final static String WECHAT_APPID = "wechat_appid";
+    private final static String WECHAT_SECRETKEY = "wechat_secretKey";
 
     /**
      * 如果某一子系统本身没有登录功能，登录时需要重定向到SSO的登录页面，
@@ -230,10 +235,7 @@ public class UserSessionController extends BaseController {
                 try {
                     // TODO 账户登录、第三方（Head）
                     org.json.JSONObject json = userService.synRegistToMember(user, "isnull", null);
-					/*user.setUid(json.getInt("uid"));
-					userService.save(user);*/
-                    //principalService.savePrincipal(user, password);
-                } catch (org.json.JSONException e) {
+                } catch (Exception e) {
                     System.out.println("-------------子系统第三方登录成功，已注册前台用户，会员同步注册失败");
                     e.printStackTrace();
                 }
@@ -634,35 +636,63 @@ public class UserSessionController extends BaseController {
         response.addCookie(checkedCookie);
     }
 
-    @RequestMapping(value = "/auth/twitter/callback", method = RequestMethod.POST)
-    public String authTwitterCallback(Model model, HttpServletRequest request, HttpServletResponse response) throws JSONException {
+    private void getWechatConfig() {
         try {
-            String appId = (String) getSession().getAttribute("wechat_appid");
-            String appSecrect = (String) getSession().getAttribute("wechat_secretKey");
-            JSONObject jsonObject = WechatUtil.getAuthorizationAccessToken(appId, appSecrect,
-                    request.getParameter("code"));
-            Iterator it = jsonObject.keys();
-            while (it.hasNext()) {
-                String key = (String) it.next();
-                String value = jsonObject.getString(key);
-                logger.info("********测试WeiXinUtil的JSon--Key：" + key + ";value:" + value);
+            if (!WECHAT_CONFIG.has(WECHAT_APPID) || StringUtils.isEmpty(WECHAT_CONFIG.getString(WECHAT_APPID))) {
+                if (!jedisClient.exists(WECHAT_APPID)) {
+                    SystemConfig config = systemConfigDao.findByScode("WECHAT_APPID");
+                    jedisClient.set(WECHAT_APPID, config != null ? config.getSstatus() : "", 36000);
+                }
+                if (!jedisClient.exists(WECHAT_SECRETKEY)) {
+                    SystemConfig config = systemConfigDao.findByScode("WECHAT_SECRETKEY");
+                    jedisClient.set(WECHAT_SECRETKEY, config != null ? config.getSstatus() : "", 36000);
+                }
+                WECHAT_CONFIG.put(WECHAT_APPID, jedisClient.get(WECHAT_APPID));
+                WECHAT_CONFIG.put(WECHAT_SECRETKEY, jedisClient.get(WECHAT_SECRETKEY));
             }
-            JSONObject authUserInfo = WechatUtil.getAuthorizationUserInfo(jsonObject.getString("access_token"), jsonObject.getString("openid"));
-
-            String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() + "/";
-            String authUrl = basePath + "/user/oauth2/session/new?provider=wechat&access_token=zx-4545dfrgrert4tr4" +
-                    "&userID=wx-90596059603ert4t4eer&userName=Answer&headImg=http://www.iconfans.org/images/uichina_08.png";
-            if (request.getScheme().equals("http")) {
-                jsonObject = this.httpGet(authUrl);
-            } else {
-                jsonObject = WechatUtil.httpsRequest(authUrl, "GET", null);
-            }
-            System.out.println("once: " + jsonObject.toString());
-        } catch (Exception e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
+        //return WECHAT_CONFIG;
+    }
 
-        return "";
+    @RequestMapping(value = "/auth/twitter/callback", method = RequestMethod.GET)
+    public String authTwitterCallback(String code, String state, Model model, HttpServletRequest request, HttpServletResponse response) throws JSONException {
+        String authUrl;
+        try {
+            model.addAttribute("toPage", request.getContextPath() + "/user/connection/isConnected");
+            this.getWechatConfig();
+            JSONObject jsonObject = WechatUtil.getAuthorizationAccessToken(WECHAT_CONFIG.getString(WECHAT_APPID),
+                    WECHAT_CONFIG.getString(WECHAT_SECRETKEY), code);
+            if (jsonObject.has("errcode")) {
+                model.addAttribute("errmsg", "微信认证授权失败！");
+                logger.error("errmsg: {}", jsonObject.getString("errmsg"));
+                return "/user/wechatLoginFail";
+            }
+            JSONObject authUserInfo = WechatUtil.getAuthorizationUserInfo(jsonObject.getString("access_token"), jsonObject.getString("openid"));
+            if (authUserInfo.has("errcode")) {
+                model.addAttribute("errmsg", "获取用户信息失败！");
+                logger.error("errmsg: {}", authUserInfo.getString("errmsg"));
+                return "/user/wechatLoginFail";
+            }
+
+            logger.info("authUserInfo: {}", authUserInfo.toString());
+            String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() + "/";
+
+            authUrl = basePath + "/user/oauth2/session/new?provider=wechat&access_token=" + authUserInfo.getString("access_token") +
+                    "&userID=" + authUserInfo.getString("openid") + "&userName=" + authUserInfo.getString("nickname") + "&headImg=" +
+                    authUserInfo.getString("headimgurl");
+            logger.info("authUrl: {}", authUrl);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("errmsg", "获取用户信息失败！");
+            logger.error("errmsg: {}", "微信授权登录回调接口异常");
+            return "/user/wechatLoginFail";
+        }
+
+        model.addAttribute("toPage", authUrl);
+        return "/user/wechatLoginSuccess";
     }
 
     public JSONObject httpGet(String url)  {

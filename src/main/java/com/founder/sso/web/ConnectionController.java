@@ -107,7 +107,7 @@ public class ConnectionController extends BaseController {
 		if (user.getUid() == null || user.getUid() == 0) {
 			try {
 				org.json.JSONObject json = userService.synRegistToMember(user, "isnull", null);
-			} catch (org.json.JSONException e) {
+			} catch (Exception e) {
 				System.out.println("------------- 第三方登录成功，已注册前台用户，会员同步注册失败");
 				e.printStackTrace();
 			}
@@ -321,7 +321,7 @@ public class ConnectionController extends BaseController {
                 rs.put("username", json.getString("msg"));
                 return new ResponseEntity<String>(new JSONObject(rs).toString(), HttpStatus.OK);
             }
-		} catch (org.json.JSONException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			rs.put("username", "绑定用户失败");
 			return new ResponseEntity<String>(new JSONObject(rs).toString(), HttpStatus.OK);
@@ -363,8 +363,10 @@ public class ConnectionController extends BaseController {
 					//判断是否调用会员中心接口
 					if(SystemConfigHolder.getConfig("if_to_amuc").equals("1")){
 						try {
-							org.json.JSONObject json = userService.synRegistToMember(user, password_re, "1");
-						} catch (org.json.JSONException e) {
+							if (user.getUid() == null) {
+								org.json.JSONObject json = userService.synRegistToMember(user, password_re, "1");
+							}
+						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					}
@@ -459,7 +461,7 @@ public class ConnectionController extends BaseController {
 			if (user.getUid() == null || user.getUid() == 0) {
 				try {
 					org.json.JSONObject json = userService.synRegistToMember(user, "isnull", null);
-				} catch (org.json.JSONException e) {
+				} catch (Exception e) {
 					System.out.println("------------- 第三方登录成功，已注册前台用户，会员同步注册失败");
 					e.printStackTrace();
 				}

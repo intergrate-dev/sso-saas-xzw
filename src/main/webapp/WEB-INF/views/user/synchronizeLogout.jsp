@@ -47,8 +47,10 @@
         if(uid && provider && sso_token) {
 			//子系统第三方平台登出处理
 
-			var fbAppID = '<%=fbAppID %>', googleClientId = '<%=googleClientId %>',
-				config = {contextPath: '${ctx}', fbAppID: fbAppID, googleClientId: googleClientId};
+            var fbAppID = '<%=fbAppID %>', googleClientId = '<%=googleClientId %>',
+                twitterAppID = '<%=twitterAppID %>', wechatAppID = '<%=wechatAppID %>',
+                config = {contextPath: '${ctx}', status:status, fbAppID: fbAppID, googleClientId: googleClientId,
+                    twitterAppID: twitterAppID, wechatAppID: wechatAppID};
 			config.isLogin = true;
 			loadThirdJSSDK(config);
 

@@ -933,7 +933,7 @@ public class UserController extends BaseController{
 
 	private boolean isOnlineOrigin(HttpServletRequest request) {
 		return request.getHeader("Origin").equals("http://localhost") || request.getHeader("Origin").equals("http://127.0.0.1")
-				|| request.getHeader("Origin").equals("https://www.crion.top");
+				|| request.getHeader("Origin").equals("https://www.crion.top") || request.getHeader("Origin").equals("http://www.crion.top");
 	}
 
 	/*private void cacheCode(final String prefix, final String value, final String code) {

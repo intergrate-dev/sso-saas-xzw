@@ -344,7 +344,9 @@
     $(function () {
         //第三方平台登录
         var fbAppID = '<%=fbAppID %>', googleClientId = '<%=googleClientId %>',
-            config = {contextPath: '${ctx}', fbAppID: fbAppID, googleClientId: googleClientId};
+            twitterAppID = '<%=twitterAppID %>', wechatAppID = '<%=wechatAppID %>',
+            config = {contextPath: '${ctx}', status:status, fbAppID: fbAppID, googleClientId: googleClientId,
+                twitterAppID: twitterAppID, wechatAppID: wechatAppID};
         config.isLogin = true;
         loadThirdJSSDK(config);
 

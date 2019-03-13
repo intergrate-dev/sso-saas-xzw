@@ -9,8 +9,8 @@
 var js_sdks = [{id: 'facebook-jssdk', jsSrc: 'https://connect.facebook.net/en_US/sdk.js'},
     {id: 'google-jssdk', jsSrc: 'https://apis.google.com/js/client:plusone.js'},
     {id: 'google-api', jsSrc: 'https://apis.google.com/js/api.js'},
-    {id: 'hello-api', jsSrc: 'http://adodson.com/hello.js/dist/hello.all.js'},
-    {id: 'weichat-api', jsSrc: 'http://res.wx.qq.com/open/js/jweixin-1.0.0.js'},
+    {id: 'hello-api', jsSrc: 'https://adodson.com/hello.js/dist/hello.all.js'},
+    {id: 'weichat-api', jsSrc: 'https://res.wx.qq.com/open/js/jweixin-1.0.0.js'},
 ];
 
 function loadThirdJSSDK(config, setAttr) {
@@ -180,7 +180,7 @@ function loginOutGP(func) {
 
 function loginOutTwitter(func) {
     twitter_init(true);
-    var name = 'twitter', options = {force: false}, callFn = after_logout;
+    var name = 'twitter', options = {force: true}, callFn = after_logout;
     twitter.logout(name, options, callFn()).then(function (res) {
         // Get Profile
         console.log("twitter out res:" + JSON.stringify(res));
@@ -262,7 +262,7 @@ function bindAccountFB(provider) {
 }
 
 function bindAccountGP(provider) {
-    gapi.load('client:auth2', initClient);
+    gapi.load('client:auth2', initClientBind);
 }
 
 function bindAccountTwitter(provider) {
@@ -273,7 +273,7 @@ function bindAccountWechat(provider) {
     wechat_login();
 }
 
-function initClient() {
+function initClientBind() {
     gapi.client.init({
         apiKey: 'AIzaSyACB1X2aG47WbhiIrGpobWr9ex9osenEd0',
         clientId: '331174060034-nkaeg4q7b4em33nm9lb8gf2bs3n5k2s3.apps.googleusercontent.com',
@@ -287,12 +287,12 @@ function initClient() {
 function updateSigninStatus(isSignedIn) {
     if (isSignedIn) {
         gapi.client.request({
-            'path': 'https://people.googleapis.com/v1/people/me?requestMask.includeField=person.names',
+            'path': 'https://people.googleapis.com/v1/people/me?requestMask.includeField=person.names,person.nicknames,person.photos,person.metadata',
         }).then(function (response) {
-            var result = response.result;
+            var authRes = response.result, userID = authRes.metadata.sources[0].id, accessToken = gapi.client.getToken().access_token;
             //return;
             // response.result.names[0]
-            isBinded("googlePlus", result, function (res) {
+            isBinded("googlePlus", userID, function (res) {
                 if (!res) {
                     alert("请求失败！");
                     return;
@@ -305,9 +305,10 @@ function updateSigninStatus(isSignedIn) {
 
                 localStorage.setItem("gp_accessToken", authRes.accessToken);
                 //注入用户信息 session()
-                globalConfig.gp_oauthUrl_bind = globalConfig.contextPath + "/user/oauth2/session/new?provider=facebook&access_token=" + authRes.accessToken +
-                    "&userID=" + authRes.userID + "&userName=" + res.name + "&toBind=1";
+                globalConfig.gp_oauthUrl_bind = globalConfig.contextPath + "/user/oauth2/session/new?provider=googlePlus&access_token=" + accessToken +
+                    "&userID=" + userID + "&userName=" + authRes.names[0].displayName + "&headImg=" + authRes.photos[0].url || "" + "&toBind=1";
                 window.location.href = globalConfig.gp_oauthUrl_bind;
+
             });
         }, function (reason) {
             console.log('reason: ' + reason.result.error.message);
@@ -327,6 +328,7 @@ window.fbAsyncInit = function () {
     // console.log("fbAsynInit ....");
     FB.init({
         appId: globalConfig.fbAppID,
+        autoLogAppEvents: true,//alter
         cookie: true,
         xfbml: true,
         version: 'v3.2'
@@ -343,17 +345,32 @@ window.fbAsyncInit = function () {
      });*/
 };
 
-function checkLoginState() {
-    //console.log("checkLoginState .... ");
-    //location.reload();
-    FB.getLoginStatus(function (response) {
+// function checkLoginState() {
+function facebook_login() {
+    /*FB.getLoginStatus(function (response) {
         if (!response.authResponse || globalConfig.isLogin) return;
         resp = response;
         userID = response.authResponse.userID;
         statusChangeCallback(response);
+    });*/
+    //alter login button
+    //bindAccountFB("twitter");
+
+    FB.login(function (response) {
+        if (!response.authResponse || globalConfig.isLogin) {
+            console.log('login fail or loging')
+            return;
+        }
+        var authRes = response.authResponse;
+        FB.api('/me?fields=name,first_name,last_name,email,picture', function (res) {
+            //注入用户信息 session()
+            globalConfig.fb_oauthUrl = globalConfig.contextPath + "/user/oauth2/session/new?provider=facebook&access_token=" + authRes.accessToken +
+                "&userID=" + authRes.userID + "&userName=" + res.name;
+            window.location.href = globalConfig.fb_oauthUrl;
+        });
+    }, {
+        scope: 'public_profile,email'
     });
-    /*if(!globalConfig.fb_oauthUrl) return;
-     window.location.href = globalConfig.fb_oauthUrl;*/
 }
 
 function statusChangeCallback(response) {
@@ -379,6 +396,53 @@ function statusChangeCallback(response) {
  * google+ 认证登录
  *
  */
+function googlePlus_login(){
+    gapi.load('client:auth2', initClientLogin);
+}
+
+function initClientLogin(){
+    /*gapi.signin.render('google_login', {
+        'callback': 'signinCallback',
+        'approvalprompt': 'auto',
+        'clientid': '331174060034-nkaeg4q7b4em33nm9lb8gf2bs3n5k2s3.apps.googleusercontent.com',
+        'cookiepolicy': 'single_host_origin',
+        'requestvisibleactions': 'http://schemas.google.com/AddActivity',
+        'scope': 'https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/userinfo.email'
+    });*/
+
+    gapi.client.init({
+        apiKey: 'AIzaSyACB1X2aG47WbhiIrGpobWr9ex9osenEd0',
+        clientId: '331174060034-nkaeg4q7b4em33nm9lb8gf2bs3n5k2s3.apps.googleusercontent.com',
+        //scope: 'profile',
+        approvalprompt: 'auto',
+        cookiepolicy: 'single_host_origin',
+        requestvisibleactions: 'http://schemas.google.com/AddActivity',
+        scope: 'https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/userinfo.email'
+    }).then(function () {
+        gapi.auth2.getAuthInstance().isSignedIn.listen(gpSigninStatus);
+        gpSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+    });
+}
+
+function gpSigninStatus(isSignedIn) {
+    if (isSignedIn) {
+        gapi.client.request({
+           'path': 'https://people.googleapis.com/v1/people/me?requestMask.includeField=person.names,person.nicknames,person.photos,person.metadata',
+        }).then(function (response) {
+            var authRes = response.result, accessToken = gapi.client.getToken().access_token;
+            //console.log("gpSigninStatus authRes: " + JSON.stringify(authRes));
+            localStorage.setItem("gp_accessToken", accessToken);
+            globalConfig.gp_oauthUrl = globalConfig.contextPath + "/user/oauth2/session/new?provider=googlePlus&access_token=" +
+                gapi.client.getToken().access_token + "&userID=" + authRes.metadata.sources[0].id + "&userName=" + authRes.names[0].displayName + "&headImg=" + authRes.photos[0].url || "";
+            window.location.href = globalConfig.gp_oauthUrl;
+        }, function (reason) {
+            console.log('reason: ' + reason.result.error.message);
+        });
+    } else {
+        gapi.auth2.getAuthInstance().signIn();
+    }
+}
+
 function signinCallback(authResult) {
     if (authResult && !authResult.error) {
         btn_googlePlus();
@@ -442,7 +506,7 @@ function twitter_init(sw) {
 }
 
 function twitter_login(network) {  //登录方法，并将twitter 作为参数传入
-    twitter_init(false);
+    twitter_init(true);
     twitter.login().then(function (r) {
         // Get Profile
         return twitter.api('/me');
@@ -461,7 +525,8 @@ function twitter_login(network) {  //登录方法，并将twitter 作为参数�
  */
 
 function wechat_login() {
-    var appid = globalConfig.wechatAppID, redirect_uri = encodeURIComponent(globalConfig.contextPath +  '/auth/twitter/callback'), state = random_state(32, 64);
+    var appid = globalConfig.wechatAppID, state = random_state(32, 64),
+        redirect_uri = location.origin + encodeURIComponent(globalConfig.contextPath +  '/auth/twitter/callback');
     //console.log("random_state: " + state)
     window.location.href='https://open.weixin.qq.com/connect/qrconnect?' + 'appid=' + appid + '&redirect_uri=' +
          redirect_uri + '&response_type=code&scope=snsapi_login&state=' + state + ' #wechat_redirect';

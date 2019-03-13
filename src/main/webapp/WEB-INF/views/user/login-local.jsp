@@ -41,6 +41,7 @@
 <html>
 <head>
 	<meta name="renderer" content="webkit">
+	<%--<meta name="google-site-verification" content="HYsVXRiOPaIrFCSCpo5m4Pf_lBlrJR4VXeo9evXO3Ao"/>--%>
 	<meta name="google-site-verification" content="izWGVNJrRLvSQS5hb7MQZIgDHlIAnuHj4rVlI9srkaM" />
     <title>用户登录</title>
 	<link rel="stylesheet" type="text/css" href="${ctx}/static/app/css/basic.css"/>
@@ -50,6 +51,7 @@
 	<script type="text/javascript" src="${ctx}/static/js/default.js"></script>
 	<script type="text/javascript" src="${ctx}/static/app/jquery.similar.msgbox.js"></script>
 	<script type="text/javascript" src="${ctx}/static/app/js/crypto-sha1-hmac.js"></script>
+
     <script>
 
 	</script>
@@ -212,27 +214,6 @@
         }
     </script>
     <style type="text/css">
-	
-		body
-		{
-			background-image:none !important;
-		}
-		
-		.securityCode a, .securityCode a:hover, .left a, left a:hover
-		{
-			text-decoration:none !important;
-			color:#464646 !important;
-		}
-		
-		.right
-		{
-			color:#464646 !important;
-		}
-		
-		.certainBtn input
-		{
-			background:#cd2026;
-		}
 		
 		.container_s{
 			width: 100%;
@@ -240,7 +221,7 @@
 		} 
 		
 		.content{
-			/*margin-top:70px*/
+			margin-top:70px;
 			/* margin-left:500px; */
 			margin-left:auto;
 			margin-right:auto;
@@ -303,8 +284,8 @@
 <body>
 	<div class="container_s">
 		<div class="content">
-			<div class="logo" style="width:100%;margin:0 auto;text-align:center;">
-				<img src="${ctx}/static/images/login/m-header-logo.png" style="margin: 20px 10px;">
+			<div class="logo">
+				<img src="${ctx}/static/images/login/logo.png" style="margin: 20px 10px;">
 			</div>
 			<div class="left content_left">
 				<form id="loginForm" action="${ctx }/user/login" class='form-signin' method="post" >
@@ -330,8 +311,8 @@
 							<a href="${ctx }/user/password/find" style="float:right;margin:2px 5px;">忘记密码?</a>
 						</div>--%>
 
-						<%--<input type="submit" class="loginbtn" value="登 录" style="color:white;font-size:1.2em;font-weight:bold;text-shadow:none;width:350px;height:40px;pointer;background-color:#cd2026;border-color:#cd2026 ;background-image:none; ">--%>
-						<div class="regInput certainBtn" style="margin: 1rem 0;">
+						<%--<input type="submit" class="loginbtn" value="登 录" style="color:white;font-size:1.2em;font-weight:bold;text-shadow:none;width:350px;height:40px;pointer;background-color:#EB6100;border-color:#EB6100 ;background-image:none; ">--%>
+						<div class="regInput certainBtn" style="margin: 2rem 0;">
 							<input id="dl" type="button" value="登录" style="border-radius: 6px;height: 3.3rem;letter-spacing: 23px;">
 						</div>
 
@@ -340,7 +321,7 @@
 						</div>--%>
 
 						<div>
-							<div class="left" style="color:#464646;">
+							<div class="left">
 								没有账号？
 								<a href="${ctx }/user/register?siteId=${sessionScope.siteId} " style="margin-left:0;">立即注册</a>
 								<a href="${ctx }/user/password/find" style="margin-left: 15px;">忘记密码</a>

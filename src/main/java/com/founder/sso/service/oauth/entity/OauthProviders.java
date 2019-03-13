@@ -7,7 +7,7 @@ public enum OauthProviders {
 	FACEBOOK("Facebook", "facebook", "fb"),
 	GOOGLEPLUS("GooglePlus", "googlePlus", "gp"),
     TWITTER("Twitter", "twitter", "tw"),
-    WECHAT("Twitter", "wechat", "wx"),
+    WECHAT("Wechat", "wechat", "wx"),
 	SOHU_CY("搜狐畅言", "sohu_cy", "cy");
     
     private String name;

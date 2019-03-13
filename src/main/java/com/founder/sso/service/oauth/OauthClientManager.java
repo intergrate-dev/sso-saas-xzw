@@ -175,7 +175,6 @@ public class OauthClientManager {
     /**
      * 处理Oauth授权回调 主要完成查找特定供应商的Client并委托进行Error信息处理
      * 
-     * @param mappedValues 请求
      * @return 客户端处理的供应商返回的错误信息 无则返回null
      */
     public static OauthErrorMsg detectErrors(ServletRequest request) {
@@ -209,9 +208,10 @@ public class OauthClientManager {
      */
     public static RemoteUser getRemoteUser(ServletRequest request) {
 		OauthClient client = detectClient(request);
-		String authcCode = client.parseAuthcCode(request);
+		/*String authcCode = client.parseAuthcCode(request);
 		OauthAccessToken accessToken = client.exchangeAccessTokenForBinding(authcCode);
-		RemoteUser remoteUser = client.fetchRemoteUser(accessToken);
+		RemoteUser remoteUser = client.fetchRemoteUser(accessToken);*/
+        RemoteUser remoteUser = client.getRemoteUser(request);
 		return remoteUser;
     }
 
